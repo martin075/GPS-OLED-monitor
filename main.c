@@ -121,12 +121,13 @@ int main(void){
 #endif
 
 	lcd_clrscr();
+	lcd_set_contrast(180);
   while(1)
 	{
 	if(nova_sprava){
 		nova_sprava=0;
 	coma_rmc=0;coma_gga=0;coma_vtg=0;j_t=0,j_v=0,j_d=0;j_ag=0;j_a=0;j_sat=0;j_s=0;j_lat=0;j_lon=0;
-	
+	lcd_charMode(NORMALSIZE);
 	lcd_gotoxy(0,0);lcd_puts("in:");
 	for(i=0;i<8;i++)lcd_putc(prijem[i]);
 	dlzka = dlzka_spravy(prijem);
@@ -147,38 +148,62 @@ int main(void){
 		if((coma_gga == 11) && (coma_gga != 12) ){altitude_g[j_ag] = spravaGGA[i+1];j_ag++;} // height of geoid
 		if(spravaVTG[i] == ',')coma_vtg++;
 		if((coma_vtg == 7) && (coma_vtg != 8) ){speed[j_s] = spravaVTG[i+1];j_s++;}  // speed
-
 	}
+	
+	if(0){
+		lcd_charMode(NORMALSIZE);
+		lcd_gotoxy(0,1);lcd_puts("TIME ");
+		hour=(unsigned int)((time[0]-48)*10 )+((unsigned int)((time[1]+UTC_offset)-48) );
+		sprintf(temp,"%d",hour);for(i=0;i<2;i++)lcd_putc(temp[i]);
+		lcd_puts(":");
+		for(i=2;i<4;i++)lcd_putc(time[i]);
+		lcd_puts(" DATE");for(i=0;i<6;i++)lcd_putc(date[i]);
+		if(status == 'A'){	
+			lcd_gotoxy(0,2);lcd_puts("LAT ");
+			for(i=0;i<12;i++)lcd_putc(lat[i]);
+			lcd_gotoxy(0,3);lcd_puts("LON ");
+			for(i=0;i<12;i++)lcd_putc(lon[i]);
+			lcd_gotoxy(0,4);lcd_puts("SAT ");for(i=0;i<2;i++)lcd_putc(sat[i]);
+			lcd_puts(" Status ");lcd_putc(status);lcd_putc(gga_stat);
+			lcd_gotoxy(0,5);
+			lcd_puts("alt ");for(i=0;i<5;i++)lcd_putc(altitude[i]);lcd_puts("m");
+			lcd_puts(" altG ");for(i=0;i<2;i++)lcd_putc(altitude_g[i]);lcd_puts("m");
+			lcd_gotoxy(1,6);
+			lcd_puts("speed ");for(i=0;i<5;i++)lcd_putc(speed[i]);lcd_puts(" km/h");
+			lcd_gotoxy(0,7);lcd_puts("                    ");
+			}//if status
+		else {lcd_gotoxy(0,7);lcd_charMode(NORMALSIZE);lcd_puts("waiting for signal");}
+		} // if screen small
 
-	lcd_gotoxy(0,1);lcd_puts("TIME ");
-	hour=(unsigned int)((time[0]-48)*10 )+((unsigned int)((time[1]+UTC_offset)-48) );
-	sprintf(temp,"%d",hour);for(i=0;i<2;i++)lcd_putc(temp[i]);
-	lcd_puts(":");
-	for(i=2;i<4;i++)lcd_putc(time[i]);
-	lcd_puts(" DATE");for(i=0;i<6;i++)lcd_putc(date[i]);
-	if(status == 'A'){	
-		lcd_gotoxy(0,2);lcd_puts("LAT ");
-		for(i=0;i<12;i++)lcd_putc(lat[i]);
-		lcd_gotoxy(0,3);lcd_puts("LON ");
-		for(i=0;i<12;i++)lcd_putc(lon[i]);
-		lcd_gotoxy(0,4);lcd_puts("SAT ");for(i=0;i<2;i++)lcd_putc(sat[i]);
-		lcd_puts(" Status ");lcd_putc(status);lcd_putc(gga_stat);
-		lcd_gotoxy(0,5);
-		lcd_puts("alt ");for(i=0;i<5;i++)lcd_putc(altitude[i]);lcd_puts("m");
-		lcd_puts(" altG ");for(i=0;i<2;i++)lcd_putc(altitude_g[i]);lcd_puts("m");
-		lcd_gotoxy(1,6);
-		lcd_puts("speed ");for(i=0;i<5;i++)lcd_putc(speed[i]);lcd_puts(" km/h");
-		lcd_gotoxy(0,7);lcd_puts("                    ");
-		}//if status
-	else {lcd_gotoxy(0,7);lcd_puts("waiting for signal");}
+	if(1){
+		lcd_gotoxy(12,1);lcd_charMode(NORMALSIZE);for(i=0;i<6;i++)lcd_putc(date[i]);
+		lcd_charMode(DOUBLESIZE);
+		lcd_gotoxy(0,1);//lcd_puts("TIME ");
+		hour=(unsigned int)((time[0]-48)*10 )+((unsigned int)((time[1]+UTC_offset)-48) );
+		sprintf(temp,"%d",hour);for(i=0;i<2;i++)lcd_putc(temp[i]);
+		lcd_puts(":");
+		for(i=2;i<4;i++)lcd_putc(time[i]);
+		
+		if(status == 'A'){
+			lcd_gotoxy(0,3);
+			lcd_puts("A");for(i=0;i<5;i++)lcd_putc(altitude[i]);lcd_puts("m");
+			lcd_gotoxy(0,5);
+			lcd_puts("S");for(i=0;i<5;i++)lcd_putc(speed[i]);lcd_puts("km/h");
+			lcd_gotoxy(0,7);lcd_charMode(NORMALSIZE);lcd_puts(" DATE ");for(i=0;i<6;i++)lcd_putc(date[i]);
+			
+		} //if status
+	else {lcd_gotoxy(0,7);lcd_charMode(NORMALSIZE);lcd_puts("waiting for signal");}
+	} // if screen big
+	
 		} //if nova sprava
-
+	else {lcd_gotoxy(0,7);lcd_charMode(NORMALSIZE);lcd_puts("waiting for message");}
     	
 	} //while loop
   
 } // end of main
 
 
+//----------------------------------------------------------------------
 int over_spravu(unsigned char *vstup)
 {
 	int vysledok=0,i;
